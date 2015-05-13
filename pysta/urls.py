@@ -25,6 +25,7 @@ urlpatterns = patterns('',
 	url(r'^profile/(?P<user_id>[\d]+)/(?P<page>[\d]+)$', 'member.views.profile'),
 	
 	url(r'^post/(?P<post_id>[\d]+)/like$', 'timeline.views.like'),
+	url(r'^post/(?P<post_id>[\d]+)/unlike$', 'timeline.views.unlike'),
 	
 	url(r'^admin/', include(admin.site.urls)),
 	

@@ -15,4 +15,17 @@ def like(request, post_id):
 	
 	# profile page 로 redirect
 	return HttpResponseRedirect(request.GET["next"])
+
+# 좋아요 취소
+def unlike(request, post_id):
+
+	# post 찾기
+	p = Post.objects.get(id=post_id)
+	
+	# 좋아요 한 사용자 삭제하기
+	p.liked.remove(request.user)
+	
+	# profile page 로 redirect
+	return HttpResponseRedirect(request.GET["next"])
+
 	

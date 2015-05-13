@@ -1,4 +1,4 @@
-
+{% load timeline_tags %}
 <div class="row">
 	<div class="col-md-2 col-md-offset-2">
 		<img src="{{page_owner.profile.profile_image_url_thumb}}" class="img-rounded" />
@@ -45,18 +45,24 @@
 				<p style="text-align:right;">@ {{p.created_at}}</p>
 				<pre>{{p.contents}}</pre>
 				<p>
-				<!-- 좋아요 -->
+					<!-- 좋아요 -->
 	{% if p.liked.count > 0 %}
 		{%for l in p.liked.all%}
-				<span>{{l.username}}</span>
+					<span>{{l.username}}</span>
 		{%endfor%}
-				가 좋아합니다.
+					가 좋아합니다.
 	{%endif%}
-				<a href="/post/{{p.id}}/like?next=/profile/{{page_owner.id}}/{{page}}#post_{{p.id}}">좋아요</a>
-				<!-- 좋아요 끝 -->
-		</p>
-	</div>	
-</div>
+
+	{% if p.liked|has:user %}
+					<a href="/post/{{p.id}}/unlike?next=/profile/{{page_owner.id}}/{{page}}#post_{{p.id}}">좋아요 취소</a>
+	{% else %}
+					<a href="/post/{{p.id}}/like?next=/profile/{{page_owner.id}}/{{page}}#post_{{p.id}}">좋아요</a>
+	{% endif %}
+	
+					<!-- 좋아요 끝 -->
+				</p>
+			</div>	
+		</div>
 {% endfor %}
 
 
