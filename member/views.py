@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 import re
 from django.contrib.auth.decorators import login_required
 from utils.decorators import dress_gnb
+from utils import utils
 from django.conf import settings
 import os
 
@@ -59,11 +60,33 @@ def register(request):
 			ctx.update(csrf(request))
 			return HttpResponse(tpl.render(ctx))
 		
-		
+		filename = ""
+		if (request.FILES.has_key("profile_photo")):
+			file = request.FILES["profile_photo"]
+			filename = file._name
+			file_path = os.path.join(settings.MEDIA_ROOT, "profile", filename)
+			file_path = utils.safe_filename(file_path)
+			filename = os.path.basename(file_path)
+			
+			fp = open(file_path, "wb")
+			
+			for c in file.chunks():
+				fp.write(c)
+			
+			fp.close()
+			
+			from PIL import Image
+			img = Image.open(file_path)
+			img.thumbnail((100, 100))
+			img.save(os.path.join(settings.MEDIA_ROOT, "profile", "thumbnail", filename))
+			
+			
+				
 		
 		user = get_user_model().objects.create_user(username, email, password)
 		profile = Profile()
 		profile.user = user
+		profile.profile_image = filename
 		profile.save()
 		
 		user.is_active = False
@@ -213,6 +236,8 @@ def modify(request):
 			file = request.FILES["profile_photo"]
 			filename = file._name
 			file_path = os.path.join(settings.MEDIA_ROOT, "profile", filename)
+			file_path = utils.safe_filename(file_path)
+			filename = os.path.basename(file_path)
 			
 			fp = open(file_path, "wb")
 			
