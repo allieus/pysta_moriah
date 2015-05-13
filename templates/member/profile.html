@@ -1,10 +1,52 @@
-	<form action="/profile" method="post" enctype="multipart/form-data">
-		{%csrf_token%}
 
-		사진 설명: 
-		<textarea name="contents"/></textarea> <br />
+<div class="row">
+	<div class="col-md-2 col-md-offset-2">
+		<img src="{{page_owner.profile.profile_image_url_thumb}}" class="img-rounded" />
+	</div>
+	<div class="col-md-4">
+		<h4>{{page_owner.username}}</h4>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-10 col-md-offset-2" style="max-width:670px;">
+
+	
+
+{% if page_owner == user %}
+		<!-- 사진 올리기, 내 페이지인 경우에만 출력 -->
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<form action="/profile" method="post" enctype="multipart/form-data">
+					{%csrf_token%}
 		
-		사진:
-		<input type="file" name="image" /><br />
-		<input type="submit" value="올리기" />
-	</form>
+					<div class="form-group{%if msg_email%} has-error{%endif%}">
+						<label for="contents">사진 설명</label>
+						<textarea name="contents" class="form-control" /></textarea>
+					</div>		
+					<div class="form-group">
+						<label for="image">사진</label>
+						<input type="file" name="image" id="image" placeholder="" />
+						<span class="help-block">{{msg_image}}</span>
+					</div>
+					<button type="submit" class="btn btn-default" >올리기</button>
+				</form>
+			</div>
+		</div>
+{% endif %}
+
+
+{% for p in posts %}
+<!-- post -->
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<img src="{{p.owner.profile.profile_image_url_thumb}}" class="img-rounded" style="margin-bottom:10px;"/>
+				<a href="/profile/{{p.owner.id}}">{{p.owner.username}}</a>
+				<img src="{{p.image_url_thumb}}" class="img-responsive img-rounded" />
+				<p style="text-align:right;">@ {{p.created_at}}</p>
+				<pre>{{p.contents}}</pre>
+			</div>	
+		</div>
+{% endfor %}
+
+	</div>
+</div>

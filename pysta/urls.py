@@ -21,6 +21,8 @@ urlpatterns = patterns('',
 	url(r'^member/logout$', 'django.contrib.auth.views.logout',{'next_page': '/member/is_login'}, name="logout_url"),
 
 	url(r'^profile$', 'member.views.profile'),
+	url(r'^profile/(?P<user_id>[\d]+)$', 'member.views.profile'),
+	url(r'^profile/(?P<user_id>[\d]+)/(?P<page>[\d]+)$', 'member.views.profile'),
 	
 	url(r'^admin/', include(admin.site.urls)),
 	

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render
-from django.template import Context, loader
+from django.template import Context, loader, RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.context_processors import csrf
 from django.contrib.auth import get_user_model, authenticate
@@ -279,12 +279,30 @@ def modify(request):
 	
 @dress_gnb
 @login_required
-def profile(request):
-	tpl = loader.get_template("member/profile.html")
-	ctx = Context({
-	})
+def profile(request, user_id=0, page=1):
 
-	if (request.FILES.has_key("image")):
+	# 페이지 사용자 가져오기
+	page_owner = None
+	
+	if (user_id == 0):
+		# 사용자 id 가 지정되지 않은 경우, 내 정보 확인
+		if not request.user.is_authenticated():
+			# 로그인이 안 된 경우 redirect
+			return HttpResponseRedirect(settings.LOGIN_URL + "?next=/profile")
+		
+		# page_owner 에 내 정보 삽입
+		page_owner = request.user
+	else:
+		# todo; 404 처리
+		page_owner = get_user_model().objects.get(id=user_id)
+		
+	tpl = loader.get_template("member/profile.html")
+	
+	# context -> requestcontext 로 변경
+	ctx = RequestContext(request)
+
+	# 내 페이지에서만 업로드 처리
+	if (page_owner == request.user and request.FILES.has_key("image")):
 		file = request.FILES["image"]
 		filename = file._name
 		file_path = os.path.join(settings.MEDIA_ROOT, "post", filename)
@@ -309,6 +327,10 @@ def profile(request):
 		post.owner = request.user
 		post.save()
 
-	ctx.update(csrf(request))
+	#ctx.update(csrf(request))
+	
+	# 페이지 정보 삽입
+	ctx["page_owner"] = page_owner
+	ctx["posts"] = page_owner.posts.order_by("-created_at")
 	
 	return HttpResponse(tpl.render(ctx))

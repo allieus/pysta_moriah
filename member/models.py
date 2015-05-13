@@ -7,6 +7,10 @@ import random, string
 class Profile(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL)
 	profile_image = models.CharField(max_length=128)
+	
+	def profile_image_url_thumb(self):
+		return settings.MEDIA_URL + "profile/thumbnail/" + self.profile_image
+	
 
 class ActivationKey(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL)
