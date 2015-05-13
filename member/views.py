@@ -9,6 +9,7 @@ from django.contrib.auth import login as django_login
 from member.models import Profile, ActivationKey
 from django.core.mail import send_mail
 import re
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -96,6 +97,12 @@ def is_login(request):
 		return HttpResponse("before login")
 
 def login(request):
+	
+	if (request.REQUEST.has_key('next')):
+		next  = request.REQUEST["next"]
+	else:
+		next = "/member/is_login"
+
 	tpl = loader.get_template("member/login.html")
 	ctx = Context({
 	})
@@ -109,7 +116,7 @@ def login(request):
 			if (user.is_active):
 				# success
 				django_login(request, user)
-				return HttpResponseRedirect("/member/is_login")
+				return HttpResponseRedirect(next)
 			else:
 				return HttpResponseRedirect("/member/issue_activation")
 				
@@ -118,7 +125,7 @@ def login(request):
 			pass
 	
 	ctx.update(csrf(request))
-	
+	ctx["next"] = next
 	return HttpResponse(tpl.render(ctx))
 
 def activate(request):
@@ -165,6 +172,7 @@ def issue_activation(request):
 	ctx.update(csrf(request))
 	return HttpResponse(tpl.render(ctx))
 
+@login_required
 def modify(request):
 	tpl = loader.get_template("member/modify.html")
 	ctx = Context({

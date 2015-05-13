@@ -95,3 +95,4 @@ EMAIL_POST = 587
 EMAIL_HOST_USER = 'binseop3@gmail.com' # gmail login account.. user@example.com
 EMAIL_HOST_PASSWORD = 'wc1inclass' # gmail password
 
+LOGIN_URL = "/member/login"
