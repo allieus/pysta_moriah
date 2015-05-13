@@ -25,9 +25,13 @@ urls_member = patterns('',
 
 # profile urls
 urls_profile = patterns('',
+    # profile main
     url(r'^$', 'timeline.views.profile', name="profile"),
     url(r'^(?P<user_id>[\d]+)/$', 'timeline.views.profile', name="profile"),
     url(r'^(?P<user_id>[\d]+)/(?P<page>[\d]+)/$', 'timeline.views.profile', name="profile"),
+    
+    # followers/followings
+    url(r'^(?P<user_id>[\d]+)/followers$', 'timeline.views.followers', name="followers"),
 )
 
 # timeline urls

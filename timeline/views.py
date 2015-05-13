@@ -114,6 +114,30 @@ class ProfileView(ListView):
 profile = ProfileView.as_view()
 
 
+# follower, follower list
+class FollowerView(ListView):
+    
+    template_name = "timeline/followers.html"
+    
+    # 대상 Queryset 설정
+    def get_queryset(self):
+        
+        # parameter 로 가져올 페이지 주인 찾기
+        uid = self.kwargs['user_id']
+        self.page_owner = get_user_model().objects.get(id=uid)
+        
+        qs = self.page_owner.profile.follower.all()
+        return qs;
+    
+    # context 추가
+    def get_context_data(self, **kwargs):
+        context = super(FollowerView, self).get_context_data(**kwargs)
+        context['page_owner'] = self.page_owner
+        return context
+        
+followers = FollowerView.as_view()
+
+
 # 글 쓰기 처리
 def post(request):
     # 폼 제출시
