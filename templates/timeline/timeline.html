@@ -1,0 +1,74 @@
+{% extends "gnb/default.html" %}
+{% block contents_for_layout %}
+{% load timeline_tags %}
+
+{% for p in posts %}
+<!-- post -->
+<div id="post_{{p.id}}" class="panel panel-default">
+<div class="panel-body">
+    <img src="{{p.owner.profile.profile_image_url_thumb}}" class="img-rounded" style="margin-bottom:10px;"/>
+    <a href="{%url "profile:profile" user_id=p.owner.id%}">{{p.owner.username}}</a>
+    <img src="{{p.image_url_thumb}}" class="img-responsive img-rounded" />
+    <p style="text-align:right;">@ {{p.created_at}}</p>
+    <pre>{{p.contents}}</pre>
+    <p>
+        <!-- 좋아요 -->
+    {% if p.liked.count > 0 %}
+        {%for l in p.liked.all%}
+        <span>{{l.username}}</span>
+        {%endfor%}
+        가 좋아합니다.
+    {%endif%}
+
+    {% if p.liked|has:user %}
+        <a href="{%url "timeline:unlike" post_id=p.id%}?next={%url "timeline:timeline" %}#post_{{p.id}}">좋아요 취소</a>
+    {% else %}
+        <a href="{%url "timeline:like" post_id=p.id%}?next={%url "timeline:timeline" %}#post_{{p.id}}">좋아요</a>
+    {% endif %}
+    
+        <!-- 좋아요 끝 -->
+
+
+        <!-- 코멘트 -->
+        <ul class="list-group">
+
+    {%for c in p.comments.all%}
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-sm-1">
+                        <img src="{{c.owner.profile.profile_image_url_thumb}}" class="img-rounded" style="max-width:25px;"/>
+                    </div>
+                    <div class="col-sm-9">
+                        {{c.contents}}
+                    </div>
+                    <div class="col-sm-2">
+        {% if c.owner == user %}
+                        <a href="{%url "timeline:remove_comment" comment_id=c.id%}?next={%url "timeline:timeline" %}#post_{{p.id}}">댓글 삭제</a>
+        {% endif %}
+                    </div>
+                </div>
+            </li>
+    {%endfor%}
+        </ul>
+            
+        <!-- 코멘트 쓰기 -->
+        <form action="{%url "timeline:do_comment" post_id=p.id%}" method="post" class="form">
+            {%csrf_token%}
+            <input type="hidden" name="next" value="{%url "timeline:timeline" %}#post_{{p.id}}" />
+            <div class="form-group {%if comment_form.contents.errors%}has-error{%endif%}">
+                <label for="{{comment_form.contents.id_for_label}}" class="col-sm-2 control-label">{{comment_form.contents.label}}</label>
+                <div class="col-sm-8">
+                {{comment_form.contents | apply_css:"form-control" }}
+                </div>
+                <div class="col-sm-2">
+                <button type="submit" class="btn btn-default" >올리기</button>
+                </div>
+            </div>
+        <!-- 코멘트 끝 -->
+    </p>
+</div>
+</div>    
+{% endfor %}
+
+
+{% endblock %}

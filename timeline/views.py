@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+import sys
+import codecs
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView, CreateView
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
-
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required        
 from utils import utils
 from .models import Post, Comment
 from .forms import PostingForm, CommentForm
@@ -158,6 +162,43 @@ class FollowingView(ListView):
         return context
         
 followings = FollowingView.as_view()
+
+
+# timeline
+class TimelineView(ListView):
+    model = Post
+    template_name = "timeline/timeline.html"
+    context_object_name = "posts"
+    
+    # 대상 Queryset 설정
+    def get_queryset(self):
+        # QuerySet 설정하고 리턴
+        qs = super(TimelineView, self).get_queryset()
+        
+        # step 1. 내가 following 하는 사람들 profile 가져오기
+        profiles_i_follow = self.request.user.profile.following.all()
+        
+        # step 2. 해당 profile 의 user 목록 가져오기
+        follow_users = get_user_model().objects.filter(profile__in=profiles_i_follow)
+        
+        # step 3. 해당 user 들이 쓴 글 가져오기
+        q1 = Q(owner__in=follow_users)
+        
+        # step 4. 내가 쓴 글 가져오기
+        q2 = Q(owner=self.request.user)
+        
+        # 원하는 결과: step 3 + step 4
+        qs = qs.filter(q1 | q2).order_by('-id')
+        
+        return qs;
+    
+    # context 추가
+    def get_context_data(self, **kwargs):
+        context = super(TimelineView, self).get_context_data(**kwargs)
+        context['comment_form'] = CommentForm()
+        return context
+        
+timeline = login_required(TimelineView.as_view())
 
 
 # 글 쓰기 처리

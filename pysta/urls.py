@@ -3,6 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
+from django.views.generic.base import RedirectView
 
 # member urls
 urls_member = patterns('',
@@ -47,6 +48,9 @@ urls_timeline = patterns('',
     # follow/unfollow
     url(r'^follow/(?P<user_id>[\d]+)/$', 'timeline.views.follow', name='follow'),
     url(r'^unfollow/(?P<user_id>[\d]+)/$', 'timeline.views.unfollow', name='unfollow'),
+    
+    # my timeline
+    url(r'^$', 'timeline.views.timeline', name='timeline'),
 )
 
 urlpatterns = patterns('',
@@ -54,9 +58,8 @@ urlpatterns = patterns('',
     url(r'^member/', include(urls_member, namespace='member')),
     url(r'^profile/', include(urls_profile, namespace='profile')),
     url(r'^timeline/', include(urls_timeline, namespace='timeline')),
+    url(r'^$', RedirectView.as_view(pattern_name='timeline:timeline'), name='root'),
 )
-
-
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
