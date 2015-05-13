@@ -10,6 +10,7 @@ urlpatterns = patterns('',
 	url(r'^member/register', 'member.views.register'),
 	url(r'^member/activate', 'member.views.activate'),
 	url(r'^member/issue_activation', 'member.views.issue_activation'),
+	url(r'^member/modify', 'member.views.modify'),
 
 	url(r'^member/is_login', 'member.views.is_login'),
 

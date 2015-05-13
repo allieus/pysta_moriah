@@ -164,4 +164,44 @@ def issue_activation(request):
 	
 	ctx.update(csrf(request))
 	return HttpResponse(tpl.render(ctx))
+
+def modify(request):
+	tpl = loader.get_template("member/modify.html")
+	ctx = Context({
+	})
+
+	if (request.POST.has_key('email')):
+		email = request.POST['email']
+		password = request.POST['password']
+		password2 = request.POST['password2']
+		error = False
+		
+		if not re.match("([^@|\s]+@[^@]+\.[^@|\s]+)",email):
+			ctx["msg_email"] = "이메일 형식이 틀립니다"
+			error = True
+
+		if (email != request.user.email and get_user_model().objects.filter(email=email).count() > 0):
+			ctx["msg_email"] = "이미 존재하는 이메일 입니다"
+			error = True
+			
+		if len(password) > 0:
+			if (password != password2):
+				ctx["msg_password"] = "두 패스워드가 일치하지 않습니다"
+				error = True
+
+			if (error == False):
+				request.user.set_password(password)
+			
+		if (error):
+			ctx.update(csrf(request))
+			return HttpResponse(tpl.render(ctx))
+		
+		request.user.email = email
+		request.user.save()
+		
+	ctx["username"] = request.user.username
+	ctx["email"] = request.user.email
+	ctx.update(csrf(request))
+	
+	return HttpResponse(tpl.render(ctx))
 	
