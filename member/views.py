@@ -10,9 +10,11 @@ from member.models import Profile, ActivationKey
 from django.core.mail import send_mail
 import re
 from django.contrib.auth.decorators import login_required
+from utils.decorators import dress_gnb
 
 # Create your views here.
 
+@dress_gnb
 def register(request):
 	tpl = loader.get_template("member/register.html")
 	ctx = Context({
@@ -90,12 +92,14 @@ def register(request):
 	
 	return HttpResponse(tpl.render(ctx))
 
+@dress_gnb
 def is_login(request):
 	if (request.user.is_authenticated()):
 		return HttpResponse("after login")
 	else:
 		return HttpResponse("before login")
 
+@dress_gnb
 def login(request):
 	
 	if (request.REQUEST.has_key('next')):
@@ -128,6 +132,7 @@ def login(request):
 	ctx["next"] = next
 	return HttpResponse(tpl.render(ctx))
 
+@dress_gnb
 def activate(request):
 	key = request.GET['key']
 	user = ActivationKey.by_key(key)
@@ -139,6 +144,7 @@ def activate(request):
 	return HttpResponse("activated")
 	
 	
+@dress_gnb
 def issue_activation(request):
 	tpl = loader.get_template("member/issue_activation.html")
 	ctx = Context({
@@ -172,6 +178,7 @@ def issue_activation(request):
 	ctx.update(csrf(request))
 	return HttpResponse(tpl.render(ctx))
 
+@dress_gnb
 @login_required
 def modify(request):
 	tpl = loader.get_template("member/modify.html")

@@ -1,5 +1,3 @@
-<html>
-<body>
 	<form action="/member/login" method="post">
 		{%csrf_token%}
 
@@ -12,4 +10,3 @@
 		<input type="hidden" name="next" value="{{next}}" />
 		<input type="submit" value="로그인" />
 	</form>
-</body>
