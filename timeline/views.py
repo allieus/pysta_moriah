@@ -164,7 +164,7 @@ class FollowingView(ListView):
 followings = FollowingView.as_view()
 
 # timeline
-class TimelineView(ListView):
+class TimelinePullView(ListView):
     model = Post
     template_name = "timeline/timeline.html"
     context_object_name = "posts"
@@ -189,6 +189,27 @@ class TimelineView(ListView):
         # 원하는 결과: step 3 + step 4
         qs = qs.filter(q1 | q2).order_by('-id')
         
+        return qs;
+    
+    # context 추가
+    def get_context_data(self, **kwargs):
+        context = super(TimelinePullView, self).get_context_data(**kwargs)
+        context['comment_form'] = CommentForm()
+        return context
+        
+timeline_pull = TimelinePullView.as_view()
+
+# timeline
+class TimelineView(ListView):
+    model = Post
+    template_name = "timeline/timeline.html"
+    context_object_name = "posts"
+    
+    # 대상 Queryset 설정
+    def get_queryset(self):
+        # QuerySet 설정하고 리턴
+        qs = self.request.user.profile.timeline.order_by('-id')
+
         return qs;
     
     # context 추가
@@ -221,7 +242,7 @@ def post(request):
             post.save()
             
             # post 배송하기 (push timeline)
-            for follower in request.user.profile.following.all():
+            for follower in request.user.profile.follower.all():
                 # 친구에게 배송하기
                 post.reader.add(follower)
             
