@@ -26,6 +26,7 @@ urlpatterns = patterns('',
 	
 	url(r'^post/(?P<post_id>[\d]+)/like$', 'timeline.views.like'),
 	url(r'^post/(?P<post_id>[\d]+)/unlike$', 'timeline.views.unlike'),
+	url(r'^post/(?P<post_id>[\d]+)/do_comment$', 'timeline.views.do_comment'),
 	
 	url(r'^admin/', include(admin.site.urls)),
 	

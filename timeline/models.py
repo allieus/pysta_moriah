@@ -22,4 +22,18 @@ class Post(models.Model):
 
 	def image_url_thumb(self):
 		return settings.MEDIA_URL + "post/thumbnail/" + self.image
-		
+
+# 댓글
+class Comment(models.Model):
+	# 댓글 내용
+	contents = models.TextField(null=False)
+	
+	# 작성자
+	owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="+")
+	
+	# 글이 속한 post
+	post = models.ForeignKey(Post, related_name="comments")
+	
+	# 작성일시
+	created_at = models.DateTimeField(auto_now_add=True)
+
