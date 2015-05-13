@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
-import codecs
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.conf.urls.static import static
@@ -54,7 +51,7 @@ urls_timeline = patterns('',
     
     # my timeline
     url(r'^$', 'timeline.views.timeline', name='timeline'),
-    url(r'^timeline_pull/$', 'timeline.views.timeline_pull', name='timeline_pull'),
+    url(r'^$', 'timeline.views.timeline_pull', name='timeline_pull'),
 )
 
 urlpatterns = patterns('',

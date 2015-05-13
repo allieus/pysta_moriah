@@ -264,6 +264,10 @@ def follow(request, user_id):
     # 친구의 follower 로 나를 추가하기
     u.profile.follower.add(request.user.profile)
     
+    # 지금까지 쓴 글 배송하기
+    for post in u.posts.all():
+        request.user.profile.timeline.add(post)
+    
     # redirect
     return redirect(request.META['HTTP_REFERER'])
     
@@ -276,6 +280,12 @@ def unfollow(request, user_id):
     
     # 친구의 follower 에서 나를 제거하기
     u.profile.follower.remove(request.user.profile)
+    
+    # 지금까지 배송된 글 제거하기
+    # 제거할 대상 찾기
+    posts_received = request.user.profile.timeline.filter(owner=u)
+    # 제거하기
+    request.user.profile.timeline.remove(*posts_received)
     
     # redirect
     return redirect(request.META['HTTP_REFERER'])
