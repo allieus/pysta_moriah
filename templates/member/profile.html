@@ -48,5 +48,19 @@
 		</div>
 {% endfor %}
 
+
+<!-- pagination -->
+<nav>
+	<ul class="pagination">
+{% for p in pages.page_range %}
+	{% if p == page %}
+			<li class="active"><a href="#"><b>{{p}}</b></a></li>
+	{% else %}
+			<li><a href="/profile/{{page_owner.id}}/{{p}}">{{p}}</a></li>
+	{% endif %}
+{% endfor%}
+		</ul>
+</nav>
+
 	</div>
 </div>

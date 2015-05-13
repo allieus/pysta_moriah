@@ -15,6 +15,7 @@ from utils.decorators import dress_gnb
 from utils import utils
 from django.conf import settings
 import os
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -283,6 +284,7 @@ def profile(request, user_id=0, page=1):
 
 	# 페이지 사용자 가져오기
 	page_owner = None
+	page = int(page)
 	
 	if (user_id == 0):
 		# 사용자 id 가 지정되지 않은 경우, 내 정보 확인
@@ -329,8 +331,15 @@ def profile(request, user_id=0, page=1):
 
 	#ctx.update(csrf(request))
 	
+	# 페이지네이션
+	page_size = 1
+	pages = Paginator(page_owner.posts.all(), page_size)
+	current_page = pages.page(page)
+
 	# 페이지 정보 삽입
 	ctx["page_owner"] = page_owner
-	ctx["posts"] = page_owner.posts.order_by("-created_at")
+	ctx["posts"] = page_owner.posts.order_by("-created_at")[current_page.start_index()-1:current_page.end_index()]
+	ctx["pages"] = pages
+	ctx["page"] = page
 	
 	return HttpResponse(tpl.render(ctx))
