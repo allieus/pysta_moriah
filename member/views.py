@@ -6,7 +6,8 @@ from django.core.context_processors import csrf
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth import login as django_login
 
-from member.models import Profile
+from member.models import Profile, ActivationKey
+from django.core.mail import send_mail
 
 # Create your views here.
 
@@ -23,7 +24,22 @@ def register(request):
 		profile = Profile()
 		profile.user = user
 		profile.save()
+		
+		user.is_active = False
 		user.save()
+		
+		key = ActivationKey.gen_key(user)
+		msg = u"<a href=\"http://{host}/member/activate?key={key}\">인증하기</a>".format(host=request.META['HTTP_HOST'], key=key)
+				
+		send_mail(
+				u'인증하여 주십시오', 
+				'', 
+				u'binseop3@gmail.com',
+				[email],
+				fail_silently=False,
+				html_message=msg
+		)
+
 		
 	
 	ctx.update(csrf(request))
@@ -47,9 +63,10 @@ def login(request):
 		user = authenticate(username=username, password=password)
 		
 		if (user != None):
-			# success
-			django_login(request, user)
-			return HttpResponseRedirect("/member/is_login")
+			if (user.is_active):
+				# success
+				django_login(request, user)
+				return HttpResponseRedirect("/member/is_login")
 		else:
 			# fail
 			pass
@@ -57,5 +74,17 @@ def login(request):
 	ctx.update(csrf(request))
 	
 	return HttpResponse(tpl.render(ctx))
+
+def activate(request):
+	key = request.GET['key']
+	user = ActivationKey.by_key(key)
+	if (user == None):
+		return HttpResponse(u"invalid key")
+	
+	user.is_active = True
+	user.save()
+	return HttpResponse("activated")
+	
+	
 	
 	
