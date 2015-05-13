@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth import login as django_login
 
 from member.models import Profile, ActivationKey
+from timeline.models import Post
 from django.core.mail import send_mail
 import re
 from django.contrib.auth.decorators import login_required
@@ -267,4 +268,40 @@ def modify(request):
 	ctx.update(csrf(request))
 	
 	return HttpResponse(tpl.render(ctx))
+
 	
+@dress_gnb
+@login_required
+def profile(request):
+	tpl = loader.get_template("member/profile.html")
+	ctx = Context({
+	})
+
+	if (request.FILES.has_key("image")):
+		file = request.FILES["image"]
+		filename = file._name
+		file_path = os.path.join(settings.MEDIA_ROOT, "post", filename)
+		file_path = utils.safe_filename(file_path)
+		filename = os.path.basename(file_path)
+		
+		fp = open(file_path, "wb")
+		
+		for c in file.chunks():
+			fp.write(c)
+		
+		fp.close()
+		
+		from PIL import Image
+		img = Image.open(file_path)
+		img.thumbnail((600, 900))
+		img.save(os.path.join(settings.MEDIA_ROOT, "post", "thumbnail", filename))
+		
+		post = Post()
+		post.image = filename
+		post.contents = request.POST["contents"]
+		post.owner = request.user
+		post.save()
+
+	ctx.update(csrf(request))
+	
+	return HttpResponse(tpl.render(ctx))

@@ -1,0 +1,10 @@
+	<form action="/profile" method="post" enctype="multipart/form-data">
+		{%csrf_token%}
+
+		사진 설명: 
+		<textarea name="contents"/></textarea> <br />
+		
+		사진:
+		<input type="file" name="image" /><br />
+		<input type="submit" value="올리기" />
+	</form>
