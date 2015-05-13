@@ -6,5 +6,5 @@ from django.conf import settings
 class Post(models.Model):
 	contents = models.TextField(null=False)
 	image = models.TextField()
-	owner = models.OneToOneField(settings.AUTH_USER_MODEL)
-	created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
+	owner = models.ForeignKey(settings.AUTH_USER_MODEL)
+	created_at = models.DateTimeField(auto_now_add=True)
