@@ -260,6 +260,10 @@ def modify(request):
 		
 		if (error):
 			ctx.update(csrf(request))
+			
+			# 기본 값 세팅
+			ctx["username"] = request.user.username
+			ctx["email"] = email
 			return HttpResponse(tpl.render(ctx))
 		
 		request.user.email = email
