@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.conf import settings
+from timeline.models import Post
 import random, string
 
 # Profile model
@@ -10,6 +11,9 @@ class Profile(models.Model):
 
     # 나를 follow 하는 사람들
     follower = models.ManyToManyField('Profile', related_name="following")
+    
+    # 내가 배송 받을 글
+    timeline = models.ManyToManyField(Post, related_name='reader')
     
     def profile_image_url_thumb(self):
         return settings.MEDIA_URL + "profile/thumbnail/" + self.profile_image

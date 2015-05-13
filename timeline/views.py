@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.contrib.auth.decorators import login_required        
+        
 from utils import utils
 from .models import Post, Comment
 from .forms import PostingForm, CommentForm
@@ -163,7 +163,6 @@ class FollowingView(ListView):
         
 followings = FollowingView.as_view()
 
-
 # timeline
 class TimelineView(ListView):
     model = Post
@@ -198,7 +197,7 @@ class TimelineView(ListView):
         context['comment_form'] = CommentForm()
         return context
         
-timeline = login_required(TimelineView.as_view())
+timeline = TimelineView.as_view()
 
 
 # 글 쓰기 처리
@@ -220,6 +219,14 @@ def post(request):
             # owner 설정 및 저장
             post.owner = request.user
             post.save()
+            
+            # post 배송하기 (push timeline)
+            for follower in request.user.profile.following.all():
+                # 친구에게 배송하기
+                post.reader.add(follower)
+            
+            # 나에게도 배송하기
+            post.reader.add(request.user.profile)
             
             return redirect('profile:profile')
     else:
