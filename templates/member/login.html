@@ -3,7 +3,24 @@
     <h4> login </h4>
     <form action="{%url "member:login"%}" method="post">
         {%csrf_token%}
-        {{form.as_p}}
-        <input type="submit" value="로그인" />
+        
+        {# display non-field error #}
+        {{ form.non_field_errors }}
+        
+        {# username input #}
+        <div class="form-group {%if form.username.errors%}has-error{%endif%}">
+            {{form.username.label_tag}}
+            {{form.username}}
+            <span class="help-block">{{form.username.errors}}</span>
+        </div>
+
+        {# password input #}
+        <div class="form-group {%if form.password.errors%}has-error{%endif%}">
+            {{form.password.label_tag}}
+            {{form.password}}
+            <span class="help-block">{{form.password.errors}}</span>
+        </div>
+
+        <input type="submit" class="btn btn-default" value="로그인" />
     </form>
 {% endblock %}
