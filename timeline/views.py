@@ -152,3 +152,17 @@ def follow(request, user_id):
     # redirect
     return redirect(request.META['HTTP_REFERER'])
     
+
+# 친구 제거
+def unfollow(request, user_id):
+
+    # 친구 찾기
+    u = get_user_model().objects.get(id=user_id)
+    
+    # 친구의 follower 에서 나를 제거하기
+    u.profile.follower.remove(request.user.profile)
+    
+    # redirect
+    return redirect(request.META['HTTP_REFERER'])
+
+    

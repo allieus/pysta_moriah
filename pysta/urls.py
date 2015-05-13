@@ -40,7 +40,8 @@ urls_timeline = patterns('',
     url(r'^post/(?P<comment_id>[\d]+)/remove_comment/$', 'timeline.views.remove_comment', name="remove_comment"),
 
     # follow/unfollow
-    url(r'^follow/(?P<user_id>[\d]+)/$', 'timeline.views.follow', name='follow')
+    url(r'^follow/(?P<user_id>[\d]+)/$', 'timeline.views.follow', name='follow'),
+    url(r'^unfollow/(?P<user_id>[\d]+)/$', 'timeline.views.unfollow', name='unfollow'),
 )
 
 urlpatterns = patterns('',

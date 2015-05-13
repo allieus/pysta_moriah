@@ -9,7 +9,11 @@
 	<div class="media-body">
 		<h4 class="media-heading">{{page_owner.username}}</h4>
 {% if user.is_authenticated and page_owner != user %}
-        <a href="{%url "timeline:follow" user_id=page_owner.id%}">follow</a>
+    {% if page_owner.profile.follower|has:user %}
+            <a href="{%url "timeline:unfollow" user_id=page_owner.id%}">unfollow</a>
+    {% else %}
+            <a href="{%url "timeline:follow" user_id=page_owner.id%}">follow</a>
+    {% endif %}
 {% endif %}
         
 	</div>
