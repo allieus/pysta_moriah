@@ -151,8 +151,11 @@ def login(request):
 				return HttpResponseRedirect("/member/issue_activation")
 				
 		else:
-			# fail
-			pass
+			# 로그인 실패 이유를 찾기 위해서 사용자 검색
+			if (get_user_model().objects.filter(username=username).exists()):
+				ctx["msg_password"] = u"패스워드 에러";
+			else:
+				ctx["msg_username"] = u"계정 에러";
 	
 	ctx.update(csrf(request))
 	ctx["next"] = next
