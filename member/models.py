@@ -7,6 +7,9 @@ import random, string
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
     profile_image = models.CharField(max_length=128)
+
+    # 나를 follow 하는 사람들
+    follower = models.ManyToManyField('Profile', related_name="following")
     
     def profile_image_url_thumb(self):
         return settings.MEDIA_URL + "profile/thumbnail/" + self.profile_image

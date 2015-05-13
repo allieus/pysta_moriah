@@ -138,4 +138,17 @@ def post(request):
     else:
         # 잘못된 접근. todo: 에러 처리
         pass
+
         
+# 친구 맺기
+def follow(request, user_id):
+
+    # 친구 찾기
+    u = get_user_model().objects.get(id=user_id)
+    
+    # 친구의 follower 로 나를 추가하기
+    u.profile.follower.add(request.user.profile)
+    
+    # redirect
+    return redirect(request.META['HTTP_REFERER'])
+    

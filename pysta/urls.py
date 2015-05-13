@@ -32,11 +32,15 @@ urls_profile = patterns('',
 
 # timeline urls
 urls_timeline = patterns('',
+    # post action
     url(r'^post/create/$', 'timeline.views.post', name="create"),
     url(r'^post/(?P<post_id>[\d]+)/like/$', 'timeline.views.like', name="like"),
     url(r'^post/(?P<post_id>[\d]+)/unlike/$', 'timeline.views.unlike', name="unlike"),
     url(r'^post/(?P<post_id>[\d]+)/do_comment/$', 'timeline.views.do_comment', name="do_comment"),
     url(r'^post/(?P<comment_id>[\d]+)/remove_comment/$', 'timeline.views.remove_comment', name="remove_comment"),
+
+    # follow/unfollow
+    url(r'^follow/(?P<user_id>[\d]+)/$', 'timeline.views.follow', name='follow')
 )
 
 urlpatterns = patterns('',
