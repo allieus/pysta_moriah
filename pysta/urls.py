@@ -36,6 +36,7 @@ urls_timeline = patterns('',
     url(r'^post/(?P<post_id>[\d]+)/like/$', 'timeline.views.like', name="like"),
     url(r'^post/(?P<post_id>[\d]+)/unlike/$', 'timeline.views.unlike', name="unlike"),
     url(r'^post/(?P<post_id>[\d]+)/do_comment/$', 'timeline.views.do_comment', name="do_comment"),
+    url(r'^post/(?P<comment_id>[\d]+)/remove_comment/$', 'timeline.views.remove_comment', name="remove_comment"),
 )
 
 urlpatterns = patterns('',

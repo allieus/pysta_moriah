@@ -57,6 +57,19 @@ def do_comment(request, post_id):
         # 잘못된 접근. todo: 에러 처리
         pass
 
+        
+# 코멘트 삭제
+def remove_comment(request, comment_id):
+
+    # comment 찾기
+    c = Comment.objects.get(id=comment_id)
+    
+    if (c.owner == request.user):
+        c.delete()
+    
+    # profile page 로 redirect
+    return redirect(request.GET["next"])
+
     
 # profile, 글 리스트 보기
 class ProfileView(ListView):
