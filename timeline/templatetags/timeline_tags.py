@@ -11,4 +11,8 @@ def has(target_rs, item):
     if (item == None): return False
     if (target_rs.filter(id=item.id).exists()): return True
     return False
-    
+
+# adding css to form fields
+@register.filter(name='apply_css')
+def apply_css(field, classname):
+    return field.as_widget(attrs={"class":classname})
