@@ -31,7 +31,8 @@ urls_profile = patterns('',
     url(r'^(?P<user_id>[\d]+)/(?P<page>[\d]+)/$', 'timeline.views.profile', name="profile"),
     
     # followers/followings
-    url(r'^(?P<user_id>[\d]+)/followers$', 'timeline.views.followers', name="followers"),
+    url(r'^(?P<user_id>[\d]+)/followers/$', 'timeline.views.followers', name="followers"),
+    url(r'^(?P<user_id>[\d]+)/followings/$', 'timeline.views.followings', name="followings"),
 )
 
 # timeline urls

@@ -1,0 +1,22 @@
+{% load timeline_tags %}
+
+<div class="media">
+	<div class="media-left">
+		<img src="{{page_owner.profile.profile_image_url_thumb}}" class="media-object img-rounded" />
+	</div>
+	<div class="media-body">
+		<h4 class="media-heading">{{page_owner.username}}</h4>
+            <a href="{% url "profile:profile" user_id=page_owner.id %}">posts</a>
+            <a href="{% url "profile:followers" user_id=page_owner.id %}">followers</a>
+            <a href="{% url "profile:followings" user_id=page_owner.id %}">followings</a>
+{% if user.is_authenticated and page_owner != user %}
+    {% if page_owner.profile.follower|has:user %}
+            <a href="{% url "timeline:unfollow" user_id=page_owner.id %}">unfollow</a>
+    {% else %}
+            <a href="{% url "timeline:follow" user_id=page_owner.id %}">follow</a>
+    {% endif %}
+{% endif %}
+        
+	</div>
+</div>
+
