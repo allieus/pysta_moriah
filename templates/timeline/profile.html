@@ -1,0 +1,76 @@
+{% extends "gnb/default.html" %}
+{% block contents_for_layout %}
+{% load timeline_tags %}
+<img src="{{page_owner.profile.profile_image_url_thumb}}" />
+<h4>{{page_owner.username}} 님의 Profile</h4>
+
+<hr />
+    
+
+{% if page_owner == user %}
+<!-- 사진 올리기, 내 페이지인 경우에만 출력 -->
+<form action="{%url "timeline:create"%}" method="post" enctype="multipart/form-data">
+    {%csrf_token%}
+    {{form.as_p}}
+    <input type="submit" value="올리기" />
+</form>
+{% endif %}
+
+
+{% for p in posts %}
+<!-- post -->
+<div id="post_{{p.id}}">
+    <img src="{{p.owner.profile.profile_image_url_thumb}}" style="margin-bottom:10px;" />
+    <a href="{%url "profile:profile" user_id=p.owner.id%}">{{p.owner.username}}</a>
+    <img src="{{p.image_url_thumb}}"  />
+    <p style="text-align:right;">@ {{p.created_at}}</p>
+    <pre>{{p.contents}}</pre>
+    <p>
+        <!-- 좋아요 -->
+    {% if p.liked.count > 0 %}
+        {%for l in p.liked.all%}
+        <span>{{l.username}}</span>
+        {%endfor%}
+        가 좋아합니다.
+    {%endif%}
+
+    {% if p.liked|has:user %}
+        <a href="{%url "timeline:unlike" post_id=p.id%}?next={%url "profile:profile" user_id=p.owner.id page=page%}#post_{{p.id}}">좋아요 취소</a>
+    {% else %}
+        <a href="{%url "timeline:like" post_id=p.id%}?next={%url "profile:profile" user_id=p.owner.id page=page%}#post_{{p.id}}">좋아요</a>
+    {% endif %}
+    
+        <!-- 좋아요 끝 -->
+
+
+        <!-- 코멘트 -->
+        <ul>
+
+    {%for c in p.comments.all%}
+            <li>
+                <img src="{{c.owner.profile.profile_image_url_thumb}}" style="max-width:25px;"/>
+                {{c.contents}}
+            </li>
+    {%endfor%}
+        </ul>
+            
+        <!-- 코멘트 쓰기 -->
+        <form action="{%url "timeline:do_comment" post_id=p.id%}" method="post" >
+            {%csrf_token%}
+            {{comment_form.as_p}}
+            <input type="hidden" name="next" value="{%url "profile:profile" user_id=p.owner.id page=page%}#post_{{p.id}}" />
+            <input type="submit" value="올리기" />
+        </form>
+        <!-- 코멘트 끝 -->
+    </p>
+</div>    
+<hr />
+{% endfor %}
+
+
+<!-- pagination -->
+{% for p in paginator.page_range %}
+    <a href="{%url "profile:profile" user_id=page_owner.id page=p%}">{{p}}</a>
+{% endfor%}
+
+{% endblock %}

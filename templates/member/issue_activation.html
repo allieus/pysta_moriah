@@ -1,8 +1,10 @@
-	<form action="/member/issue_activation" method="post">
-		{%csrf_token%}
+{% extends "gnb/default.html" %}
+{% block contents_for_layout %}
+    <form action="{%url "member:issue_activation"%}" method="post">
+        {%csrf_token%}
 
-		email:
-		<input type="text" name="email" /><br />
-		
-		<input type="submit" value="재발급" />
-	</form>
+        {{form.as_p}}
+       
+        <input type="submit" value="재발급" />
+    </form>
+{% endblock %}

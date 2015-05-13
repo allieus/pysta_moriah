@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import Context, loader
 
+# 사용하지 않습니다
 def dress_gnb(view_func):
 	def inner(request, *args, **kwargs):
 	

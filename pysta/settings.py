@@ -28,7 +28,7 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 TEMPLATE_DIRS = (
-	BASE_DIR + "/templates",
+    BASE_DIR + "/templates",
 )
 
 
@@ -41,8 +41,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'member',
-	'timeline',
+    'member',
+    'timeline',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -4,34 +4,48 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
 
+# member urls
+urls_member = patterns('',
+
+    # register/modify
+    url(r'^register/$', 'member.views.register', name="register"),
+    url(r'^modify/$', 'member.views.modify', name="modify"),
+    
+    # login/out
+    url(r'^login/$', 'member.views.login', name="login"),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/member/is_login'}, name="logout_url"),
+
+    # activation
+    url(r'^activate/$', 'member.views.activate', name="activate"),
+    url(r'^issue_activation/$', 'member.views.issue_activation', name="issue_activation"),
+    
+    # temporary
+    url(r'^is_login/$', 'member.views.is_login', name="is_login"),
+)
+
+# profile urls
+urls_profile = patterns('',
+    url(r'^$', 'timeline.views.profile', name="profile"),
+    url(r'^(?P<user_id>[\d]+)/$', 'timeline.views.profile', name="profile"),
+    url(r'^(?P<user_id>[\d]+)/(?P<page>[\d]+)/$', 'timeline.views.profile', name="profile"),
+)
+
+# timeline urls
+urls_timeline = patterns('',
+    url(r'^post/create/$', 'timeline.views.post', name="create"),
+    url(r'^post/(?P<post_id>[\d]+)/like/$', 'timeline.views.like', name="like"),
+    url(r'^post/(?P<post_id>[\d]+)/unlike/$', 'timeline.views.unlike', name="unlike"),
+    url(r'^post/(?P<post_id>[\d]+)/do_comment/$', 'timeline.views.do_comment', name="do_comment"),
+)
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'pysta.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-
-	url(r'^member/register', 'member.views.register'),
-	url(r'^member/activate', 'member.views.activate'),
-	url(r'^member/issue_activation', 'member.views.issue_activation'),
-	url(r'^member/modify', 'member.views.modify'),
-
-	url(r'^member/is_login', 'member.views.is_login'),
-
-	url(r'^member/login', 'member.views.login'),
-	url(r'^member/logout$', 'django.contrib.auth.views.logout',{'next_page': '/member/is_login'}, name="logout_url"),
-
-	url(r'^profile$', 'member.views.profile'),
-	url(r'^profile/(?P<user_id>[\d]+)$', 'member.views.profile'),
-	url(r'^profile/(?P<user_id>[\d]+)/(?P<page>[\d]+)$', 'member.views.profile'),
-	
-	url(r'^post/(?P<post_id>[\d]+)/like$', 'timeline.views.like'),
-	url(r'^post/(?P<post_id>[\d]+)/unlike$', 'timeline.views.unlike'),
-	url(r'^post/(?P<post_id>[\d]+)/do_comment$', 'timeline.views.do_comment'),
-	
-	url(r'^admin/', include(admin.site.urls)),
-	
-	
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^member/', include(urls_member, namespace='member')),
+    url(r'^profile/', include(urls_profile, namespace='profile')),
+    url(r'^timeline/', include(urls_timeline, namespace='timeline')),
 )
+
+
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

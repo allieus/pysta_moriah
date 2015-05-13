@@ -1,22 +1,9 @@
-	<form action="/member/register" method="post" enctype="multipart/form-data">
-		{%csrf_token%}
-
-		username: 
-		<input type="text" name="username" value="{{username}}" /> <br />
-		{{msg_username}}<br />
-		
-		email:
-		<input type="text" name="email" value="{{email}}" /><br />
-		{{msg_email}}<br />
-		
-		password
-		<input type="password" name="password" /><br />
-		{{msg_password}}<br />
-		
-		password 확인
-		<input type="password" name="password2" /><br />
-		
-		profile image
-		<input type="file" name="profile_photo" /><br />
-		<input type="submit" value="가입" />
-	</form>
+{% extends "gnb/default.html" %}
+{% block contents_for_layout %}
+    <h4> register </h4>
+    <form action="{%url "member:register"%}" method="post" enctype="multipart/form-data">
+        {%csrf_token%}
+        {{form.as_p}}
+        <input type="submit" value="가입" />
+    </form>
+{% endblock %}

@@ -6,6 +6,41 @@ from django.template import Context, loader
 import os
 from django.utils.text import slugify
 from urllib import quote
+from PIL import Image
+from django.conf import settings
+
+# 파일 업로드 하기
+def upload(file, path):
+    # 파일 이름 받아오기
+    filename = file._name
+    
+    # fullpath
+    file_path = os.path.join(settings.MEDIA_ROOT, path, filename)
+    
+    # 안전한 파일 이름으로 변경
+    file_path = safe_filename(file_path)
+    
+    # 파일 쓰기
+    fp = open(file_path, "wb")
+    for c in file.chunks():
+        fp.write(c)
+    
+    fp.close()
+    return os.path.basename(file_path)
+
+# 썸네일 만들기
+def make_thumb(filename, path, width, height):
+
+    # 위치 지정
+    file_path_org = os.path.join(settings.MEDIA_ROOT, path, filename)
+    file_path_to = os.path.join(settings.MEDIA_ROOT, path, "thumbnail", filename)
+    
+    # 열고, 썸네일
+    img = Image.open(file_path_org)
+    img.thumbnail((width, height))
+    
+    # 저장하기
+    img.save(file_path_to)
 
 def safe_filename(filename_org):
 	

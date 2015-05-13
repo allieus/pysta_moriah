@@ -1,23 +1,9 @@
-<div class="row">
-	<div class="col-md-4 col-md-offset-4">
-	
-	<h4> login </h4>
-	<form action="/member/login" method="post">
-		{%csrf_token%}
-		<div class="form-group{%if msg_username%} has-error{%endif%}">
-			<label for="username">username</label>
-			<input type="text" class="form-control" name="username" id="username" placeholder="user id" value="{{username}}" />
-			<span class="help-block">{{msg_username}}</span>
-		</div>
-
-		<div class="form-group{%if msg_password%} has-error{%endif%}">
-			<label for="password">password</label>
-			<input type="password" class="form-control" name="password" id="password" placeholder="" />
-			<span class="help-block">{{msg_password}}</span>
-		</div>
-
-		<input type="hidden" name="next" value="{{next}}" />
-		<button type="submit" class="btn btn-default" >로그인</button>
-	</form>
-	</div>
-</div>
+{% extends "gnb/default.html" %}
+{% block contents_for_layout %}
+    <h4> login </h4>
+    <form action="{%url "member:login"%}" method="post">
+        {%csrf_token%}
+        {{form.as_p}}
+        <input type="submit" value="로그인" />
+    </form>
+{% endblock %}

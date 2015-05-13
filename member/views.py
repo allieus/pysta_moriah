@@ -1,345 +1,180 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import render
-from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, HttpResponseRedirect
-from django.core.context_processors import csrf
-from django.contrib.auth import get_user_model, authenticate
-from django.contrib.auth import login as django_login
 
-from member.models import Profile, ActivationKey
-from timeline.models import Post
-from django.core.mail import send_mail
-import re
-from django.contrib.auth.decorators import login_required
-from utils.decorators import dress_gnb
-from utils import utils
-from django.conf import settings
 import os
+
+from django.template import Context, loader
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+from django.contrib.auth import login as django_login
+from django.shortcuts import redirect, render
 from django.core.paginator import Paginator
+from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
-# Create your views here.
+from utils import utils
+from .models import Profile, ActivationKey
+from .forms import RegistrationForm, LoginForm, \
+        ModificationForm, ActivationForm
 
-@dress_gnb
+# 회원 등록
 def register(request):
-	tpl = loader.get_template("member/register.html")
-	ctx = Context({
-	})
-	
-	if (request.POST.has_key('username')):
-		username = request.POST['username']
-		email = request.POST['email']
-		password = request.POST['password']
-		password2 = request.POST['password2']
-		error = False
-		ctx['email'] = email
-		ctx['username'] = username
-		
-		if (password != password2):
-			ctx["msg_password"] = "두 패스워드가 일치하지 않습니다"
-			error = True
+    tpl = loader.get_template("member/register.html")
+    ctx = Context({
+    })
+    
+    # 폼 제출시
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        
+        # 입력 값 정상인 경우
+        if form.is_valid():
+            # 사용자 만들기
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            
+            # profile 만들기
+            profile = Profile(user=user)
+            
+            # 프로필 이미지 업로드
+            if (request.FILES.has_key("profile_photo")):
+                filename = utils.upload(request.FILES["profile_photo"], "profile")
+                utils.make_thumb(filename, "profile", 100,100)
+                profile.profile_image = filename
+            
+            # profile 저장
+            profile.save()
 
-		if not re.match("([^@|\s]+@[^@]+\.[^@|\s]+)",email):
-			ctx["msg_email"] = "이메일 형식이 틀립니다"
-			error = True
-		
-		if len(username) < 1:
-			ctx["msg_username"] = "이름은 꼭 입력 해 주세요"
-			error = True
-		
-		if len(password) < 1:
-			ctx["msg_password"] = "비밀번호는 꼭 입력 해 주세요"
-			error = True
-		
-		if (get_user_model().objects.filter(email=email).count() > 0):
-			ctx["msg_email"] = "이미 존재하는 이메일 입니다"
-			error = True
+            # 이메일 인증 키 생성 및 발송
+            key = ActivationKey.gen_key(user)
+            send_activationkey(request, user, key)
 
-		if (get_user_model().objects.filter(username=username).count() > 0):
-			ctx["msg_username"] = "이미 존재하는 사용자입니다"
-			error = True
-			
-		if (error):
-			ctx.update(csrf(request))
-			return HttpResponse(tpl.render(ctx))
-		
-		filename = ""
-		if (request.FILES.has_key("profile_photo")):
-			file = request.FILES["profile_photo"]
-			filename = file._name
-			file_path = os.path.join(settings.MEDIA_ROOT, "profile", filename)
-			file_path = utils.safe_filename(file_path)
-			filename = os.path.basename(file_path)
-			
-			fp = open(file_path, "wb")
-			
-			for c in file.chunks():
-				fp.write(c)
-			
-			fp.close()
-			
-			from PIL import Image
-			img = Image.open(file_path)
-			img.thumbnail((100, 100))
-			img.save(os.path.join(settings.MEDIA_ROOT, "profile", "thumbnail", filename))
-			
-			
-				
-		
-		user = get_user_model().objects.create_user(username, email, password)
-		profile = Profile()
-		profile.user = user
-		profile.profile_image = filename
-		profile.save()
-		
-		user.is_active = False
-		user.save()
-		
-		key = ActivationKey.gen_key(user)
-		
-		#mail form
-		tpl_mail = loader.get_template("mail_form/activate.html")
-		ctx_mail = Context({})
-		ctx_mail["host"] = request.META['HTTP_HOST']
-		ctx_mail["key"] = key
-		
-		msg = tpl_mail.render(ctx_mail)
-		
-		send_mail(
-				u'인증하여 주십시오', 
-				'', 
-				u'binseop3@gmail.com',
-				[email],
-				fail_silently=False,
-				html_message=msg
-		)
+            return redirect('member:login')
+    else:
+        # 폼 제출 전 (회원 가입 양식 보이기)
+        form = RegistrationForm()
+        
+    return render(request, 'member/register.html', {'form': form})
 
-		
-	
-	ctx.update(csrf(request))
-	
-	return HttpResponse(tpl.render(ctx))
-
-@dress_gnb
+    
+# 로그인 확인
 def is_login(request):
-	if (request.user.is_authenticated()):
-		return HttpResponse("after login")
-	else:
-		return HttpResponse("before login")
+    if (request.user.is_authenticated()):
+        return HttpResponse("after login")
+    else:
+        return HttpResponse("before login")
 
-@dress_gnb
+        
+# 로그인 처리
 def login(request):
-	
-	if (request.REQUEST.has_key('next')):
-		next  = request.REQUEST["next"]
-	else:
-		next = "/member/is_login"
 
-	tpl = loader.get_template("member/login.html")
-	ctx = Context({
-	})
-	
-	if (request.POST.has_key('username')):
-		username = request.POST['username']
-		password = request.POST['password']
-		user = authenticate(username=username, password=password)
-		
-		if (user != None):
-			if (user.is_active):
-				# success
-				django_login(request, user)
-				return HttpResponseRedirect(next)
-			else:
-				return HttpResponseRedirect("/member/issue_activation")
-				
-		else:
-			# 로그인 실패 이유를 찾기 위해서 사용자 검색
-			if (get_user_model().objects.filter(username=username).exists()):
-				ctx["msg_password"] = u"패스워드 에러";
-			else:
-				ctx["msg_username"] = u"계정 에러";
-	
-	ctx.update(csrf(request))
-	ctx["next"] = next
-	return HttpResponse(tpl.render(ctx))
-
-@dress_gnb
+    # 폼 제출시
+    if request.method == 'POST':
+        
+        form = LoginForm(data=request.POST)
+        # 로그인 성공
+        if form.is_valid():
+            
+            # 세션 세팅
+            django_login(request, form.user)
+            
+            # 기본 페이지로 redirect
+            return redirect('member:is_login')
+    else:
+        form = LoginForm
+        
+    return render(request, 'member/login.html', {'form': form})
+    
+    
+# 사용자 인증
 def activate(request):
-	key = request.GET['key']
-	user = ActivationKey.by_key(key)
-	if (user == None):
-		return HttpResponse(u"invalid key")
-	
-	user.is_active = True
-	user.save()
-	return HttpResponse("activated")
-	
-	
-@dress_gnb
+    
+    key = request.GET['key']
+    
+    # 인증키로 사용자 가져오기
+    user = ActivationKey.by_key(key)
+    
+    # 해당 키로 사용자를 못 찾은 경우
+    if (user == None):
+        return HttpResponse(u"invalid key")
+    
+    # 인증 완료 상태로 바꾸기
+    user.is_active = True
+    user.save()
+    
+    return HttpResponse("activated")
+    
+# 인증키 재 발송
 def issue_activation(request):
-	tpl = loader.get_template("member/issue_activation.html")
-	ctx = Context({
-	})
-	
-	if (request.POST.has_key('email')):
-		email = request.POST['email']
-		users = get_user_model().objects.filter(email=email)
-		
-		if (users.count() > 0):
-			user = users[0]
-			key = ActivationKey.gen_key(user)
-			
-			#mail form
-			tpl_mail = loader.get_template("mail_form/activate.html")
-			ctx_mail = Context({})
-			ctx_mail["host"] = request.META['HTTP_HOST']
-			ctx_mail["key"] = key
-			
-			msg = tpl_mail.render(ctx_mail)
-			
-			send_mail(
-					u'인증하여 주십시오', 
-					'', 
-					u'binseop3@gmail.com',
-					[email],
-					fail_silently=False,
-					html_message=msg
-			)
-	
-	ctx.update(csrf(request))
-	return HttpResponse(tpl.render(ctx))
+    
+    # 폼 제출시
+    if request.method == 'POST':
+        form = ActivationForm(request.POST)
+        
+        if form.is_valid():
+            # 이메일 인증 키 생성 및 발송
+            key = ActivationKey.gen_key(form.user)
+            send_activationkey(request, form.user, key)
 
-@dress_gnb
+            return redirect('member:login')
+    else:
+        form = ActivationForm()
+    
+    return render(request, "member/issue_activation.html", {"form":form})
+    
+
+# 사용자 정보 수정
 @login_required
 def modify(request):
-	tpl = loader.get_template("member/modify.html")
-	ctx = Context({
-	})
 
-	if (request.POST.has_key('email')):
-		email = request.POST['email']
-		password = request.POST['password']
-		password2 = request.POST['password2']
-		error = False
-		
-		if not re.match("([^@|\s]+@[^@]+\.[^@|\s]+)",email):
-			ctx["msg_email"] = "이메일 형식이 틀립니다"
-			error = True
+    # 폼 제출시
+    if request.method == 'POST':
+        form = ModificationForm(request.POST, instance=request.user)
+        
+        # 폼 내용이 정상이면
+        if form.is_valid():
+        
+            # 폼 내용 저장하기
+            user = form.save(commit=False)
+            user.save()
+            
+            # 프로필 이미지 업로드, 업로드 된 경우에만
+            if (request.FILES.has_key("profile_photo")):
+                filename = utils.upload(request.FILES["profile_photo"], "profile")
+                utils.make_thumb(filename, "profile", 100,100)
+                user.profile.profile_image = filename
 
-		if (email != request.user.email and get_user_model().objects.filter(email=email).count() > 0):
-			ctx["msg_email"] = "이미 존재하는 이메일 입니다"
-			error = True
-			
-		if len(password) > 0:
-			if (password != password2):
-				ctx["msg_password"] = "두 패스워드가 일치하지 않습니다"
-				error = True
+            user.profile.save()
 
-			if (error == False):
-				request.user.set_password(password)
+    else:
+        form = ModificationForm(instance=request.user)
+    
+    return render(request, "member/modify.html", {"form":form})
+    
+# 이메일 인증 키 발송
+def send_activationkey(request, user, key):
+    
+    # 탬플릿 로드하기
+    tpl_mail = loader.get_template("mail_form/activate.html")
+    
+    # 컨텍스트 준비
+    ctx_mail = Context()
+    
+    # 컨텍스트 할당, host 주소와 인증 key
+    ctx_mail["host"] = request.META['HTTP_HOST']
+    ctx_mail["key"] = key
+    
+    # 렌더링
+    msg = tpl_mail.render(ctx_mail)
+    
+    # 메일 보내기
+    send_mail(
+            u'인증하여 주십시오', 
+            '', 
+            u'binseop3@gmail.com',
+            [user.email],
+            fail_silently=False,
+            html_message=msg
+    )
 
-		if (request.FILES.has_key("profile_photo")):
-			file = request.FILES["profile_photo"]
-			filename = file._name
-			file_path = os.path.join(settings.MEDIA_ROOT, "profile", filename)
-			file_path = utils.safe_filename(file_path)
-			filename = os.path.basename(file_path)
-			
-			fp = open(file_path, "wb")
-			
-			for c in file.chunks():
-				fp.write(c)
-			
-			fp.close()
-			
-			from PIL import Image
-			img = Image.open(file_path)
-			img.thumbnail((100, 100))
-			img.save(os.path.join(settings.MEDIA_ROOT, "profile", "thumbnail", filename))
-			
-			request.user.profile.profile_image = filename
-		
-		
-		if (error):
-			ctx.update(csrf(request))
-			
-			# 기본 값 세팅
-			ctx["username"] = request.user.username
-			ctx["email"] = email
-			return HttpResponse(tpl.render(ctx))
-		
-		request.user.email = email
-		request.user.profile.save()
-		request.user.save()
-		
-	ctx["username"] = request.user.username
-	ctx["email"] = request.user.email
-	ctx.update(csrf(request))
-	
-	return HttpResponse(tpl.render(ctx))
-
-	
-@dress_gnb
-@login_required
-def profile(request, user_id=0, page=1):
-
-	# 페이지 사용자 가져오기
-	page_owner = None
-	page = int(page)
-	
-	if (user_id == 0):
-		# 사용자 id 가 지정되지 않은 경우, 내 정보 확인
-		if not request.user.is_authenticated():
-			# 로그인이 안 된 경우 redirect
-			return HttpResponseRedirect(settings.LOGIN_URL + "?next=/profile")
-		
-		# page_owner 에 내 정보 삽입
-		page_owner = request.user
-	else:
-		# todo; 404 처리
-		page_owner = get_user_model().objects.get(id=user_id)
-		
-	tpl = loader.get_template("member/profile.html")
-	
-	# context -> requestcontext 로 변경
-	ctx = RequestContext(request)
-
-	# 내 페이지에서만 업로드 처리
-	if (page_owner == request.user and request.FILES.has_key("image")):
-		file = request.FILES["image"]
-		filename = file._name
-		file_path = os.path.join(settings.MEDIA_ROOT, "post", filename)
-		file_path = utils.safe_filename(file_path)
-		filename = os.path.basename(file_path)
-		
-		fp = open(file_path, "wb")
-		
-		for c in file.chunks():
-			fp.write(c)
-		
-		fp.close()
-		
-		from PIL import Image
-		img = Image.open(file_path)
-		img.thumbnail((600, 900))
-		img.save(os.path.join(settings.MEDIA_ROOT, "post", "thumbnail", filename))
-		
-		post = Post()
-		post.image = filename
-		post.contents = request.POST["contents"]
-		post.owner = request.user
-		post.save()
-
-	#ctx.update(csrf(request))
-	
-	# 페이지네이션
-	page_size = 1
-	pages = Paginator(page_owner.posts.all(), page_size)
-	current_page = pages.page(page)
-
-	# 페이지 정보 삽입
-	ctx["page_owner"] = page_owner
-	ctx["posts"] = page_owner.posts.order_by("-created_at")[current_page.start_index()-1:current_page.end_index()]
-	ctx["pages"] = pages
-	ctx["page"] = page
-	
-	return HttpResponse(tpl.render(ctx))
