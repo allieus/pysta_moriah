@@ -16,6 +16,9 @@ class Post(models.Model):
 	
 	# 작성일시
 	created_at = models.DateTimeField(auto_now_add=True)
+	
+	# 좋아요 한 사용자
+	liked = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="likes")
 
 	def image_url_thumb(self):
 		return settings.MEDIA_URL + "post/thumbnail/" + self.image

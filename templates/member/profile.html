@@ -36,22 +36,33 @@
 
 
 {% for p in posts %}
-<!-- post -->
-		<div class="panel panel-default">
+		<!-- post -->
+		<div class="panel panel-default" id="post_{{p.id}}">
 			<div class="panel-body">
 				<img src="{{p.owner.profile.profile_image_url_thumb}}" class="img-rounded" style="margin-bottom:10px;"/>
 				<a href="/profile/{{p.owner.id}}">{{p.owner.username}}</a>
 				<img src="{{p.image_url_thumb}}" class="img-responsive img-rounded" />
 				<p style="text-align:right;">@ {{p.created_at}}</p>
 				<pre>{{p.contents}}</pre>
-			</div>	
-		</div>
+				<p>
+				<!-- 좋아요 -->
+	{% if p.liked.count > 0 %}
+		{%for l in p.liked.all%}
+				<span>{{l.username}}</span>
+		{%endfor%}
+				가 좋아합니다.
+	{%endif%}
+				<a href="/post/{{p.id}}/like?next=/profile/{{page_owner.id}}/{{page}}#post_{{p.id}}">좋아요</a>
+				<!-- 좋아요 끝 -->
+		</p>
+	</div>	
+</div>
 {% endfor %}
 
 
 <!-- pagination -->
-<nav>
-	<ul class="pagination">
+	<nav>
+		<ul class="pagination">
 {% for p in pages.page_range %}
 	{% if p == page %}
 			<li class="active"><a href="#"><b>{{p}}</b></a></li>
