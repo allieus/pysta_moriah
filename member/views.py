@@ -11,6 +11,8 @@ from django.core.mail import send_mail
 import re
 from django.contrib.auth.decorators import login_required
 from utils.decorators import dress_gnb
+from django.conf import settings
+import os
 
 # Create your views here.
 
@@ -206,12 +208,33 @@ def modify(request):
 
 			if (error == False):
 				request.user.set_password(password)
+
+		if (request.FILES.has_key("profile_photo")):
+			file = request.FILES["profile_photo"]
+			filename = file._name
+			file_path = os.path.join(settings.MEDIA_ROOT, "profile", filename)
 			
+			fp = open(file_path, "wb")
+			
+			for c in file.chunks():
+				fp.write(c)
+			
+			fp.close()
+			
+			from PIL import Image
+			img = Image.open(file_path)
+			img.thumbnail((100, 100))
+			img.save(os.path.join(settings.MEDIA_ROOT, "profile", "thumbnail", filename))
+			
+			request.user.profile.profile_image = filename
+		
+		
 		if (error):
 			ctx.update(csrf(request))
 			return HttpResponse(tpl.render(ctx))
 		
 		request.user.email = email
+		request.user.profile.save()
 		request.user.save()
 		
 	ctx["username"] = request.user.username

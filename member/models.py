@@ -6,6 +6,7 @@ import random, string
 # Create your models here.
 class Profile(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL)
+	profile_image = models.CharField(max_length=128)
 
 class ActivationKey(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL)
