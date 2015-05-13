@@ -16,6 +16,7 @@ from utils import utils
 from .models import Profile, ActivationKey
 from .forms import RegistrationForm, LoginForm, \
         ModificationForm, ActivationForm
+from .tasks import send_activationkey
 
 # 회원 등록
 def register(request):
@@ -48,7 +49,7 @@ def register(request):
 
             # 이메일 인증 키 생성 및 발송
             key = ActivationKey.gen_key(user)
-            send_activationkey(request, user, key)
+            send_activationkey.delay(request.META['HTTP_HOST'], form.user, key)
 
             return redirect('member:login')
     else:
@@ -115,7 +116,7 @@ def issue_activation(request):
         if form.is_valid():
             # 이메일 인증 키 생성 및 발송
             key = ActivationKey.gen_key(form.user)
-            send_activationkey(request, form.user, key)
+            send_activationkey.delay(request.META['HTTP_HOST'], form.user, key)
 
             return redirect('member:login')
     else:
@@ -152,29 +153,3 @@ def modify(request):
     
     return render(request, "member/modify.html", {"form":form})
     
-# 이메일 인증 키 발송
-def send_activationkey(request, user, key):
-    
-    # 탬플릿 로드하기
-    tpl_mail = loader.get_template("mail_form/activate.html")
-    
-    # 컨텍스트 준비
-    ctx_mail = Context()
-    
-    # 컨텍스트 할당, host 주소와 인증 key
-    ctx_mail["host"] = request.META['HTTP_HOST']
-    ctx_mail["key"] = key
-    
-    # 렌더링
-    msg = tpl_mail.render(ctx_mail)
-    
-    # 메일 보내기
-    send_mail(
-            u'인증하여 주십시오', 
-            '', 
-            u'binseop3@gmail.com',
-            [user.email],
-            fail_silently=False,
-            html_message=msg
-    )
-

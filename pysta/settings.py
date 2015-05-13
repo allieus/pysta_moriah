@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'member',
     'timeline',
 )
@@ -100,3 +101,12 @@ LOGIN_URL = "/member/login"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
+
+import djcelery
+
+# celery 설정
+djcelery.setup_loader()
+
+# broker 설정
+BROKER_URL = "redis://localhost:6379/0"
+ 

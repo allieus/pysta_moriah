@@ -152,7 +152,7 @@ class FollowingView(ListView):
         uid = self.kwargs['user_id']
         self.page_owner = get_user_model().objects.get(id=uid)
         
-        qs = self.page_owner.profile.following.all()
+        qs = self.page_owner.profile.follower.all()
         return qs;
     
     # context 추가
@@ -242,7 +242,7 @@ def post(request):
             post.save()
             
             # post 배송하기 (push timeline)
-            for follower in request.user.profile.follower.all():
+            for follower in request.user.profile.following.all():
                 # 친구에게 배송하기
                 post.reader.add(follower)
             
