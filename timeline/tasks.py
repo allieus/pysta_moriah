@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+from time import sleep
 import codecs
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
@@ -33,4 +34,10 @@ def remove_on_unfollow(user_follow, user_follower):
     posts_received = user_follower.profile.timeline.filter(owner=user_follow)
     # 제거하기
     user_follower.profile.timeline.remove(*posts_received)
-    
+
+
+@shared_task
+def slow_sum(x, y):
+    sleep(3)
+    return x + y
+
