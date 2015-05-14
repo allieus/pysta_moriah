@@ -12,6 +12,7 @@ from django.db.models import Q
 from utils import utils
 from .models import Post, Comment
 from .forms import PostingForm, CommentForm
+from .tasks import distribute, distribute_on_follow, remove_on_unfollow
 
 # 좋아요
 def like(request, post_id):
@@ -152,7 +153,7 @@ class FollowingView(ListView):
         uid = self.kwargs['user_id']
         self.page_owner = get_user_model().objects.get(id=uid)
         
-        qs = self.page_owner.profile.follower.all()
+        qs = self.page_owner.profile.following.all()
         return qs;
     
     # context 추가
@@ -242,12 +243,7 @@ def post(request):
             post.save()
             
             # post 배송하기 (push timeline)
-            for follower in request.user.profile.following.all():
-                # 친구에게 배송하기
-                post.reader.add(follower)
-            
-            # 나에게도 배송하기
-            post.reader.add(request.user.profile)
+            distribute.delay(post)
             
             return redirect('profile:profile')
     else:
@@ -265,8 +261,7 @@ def follow(request, user_id):
     u.profile.follower.add(request.user.profile)
     
     # 지금까지 쓴 글 배송하기
-    for post in u.posts.all():
-        request.user.profile.timeline.add(post)
+    distribute_on_follow.delay(u, request.user)
     
     # redirect
     return redirect(request.META['HTTP_REFERER'])
@@ -282,10 +277,7 @@ def unfollow(request, user_id):
     u.profile.follower.remove(request.user.profile)
     
     # 지금까지 배송된 글 제거하기
-    # 제거할 대상 찾기
-    posts_received = request.user.profile.timeline.filter(owner=u)
-    # 제거하기
-    request.user.profile.timeline.remove(*posts_received)
+    remove_on_unfollow.delay(u, request.user)
     
     # redirect
     return redirect(request.META['HTTP_REFERER'])
