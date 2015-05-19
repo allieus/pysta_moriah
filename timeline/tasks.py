@@ -11,7 +11,7 @@ from celery import shared_task
 # post 배송하기 (push timeline)
 @shared_task
 def distribute(post):
-    for follower in post.owner.user.profile.follower.all():
+    for follower in post.owner.profile.follower.all():
         # 친구에게 배송하기
         post.reader.add(follower)
     
