@@ -26,6 +26,7 @@
         </div>
         {% endif %}
     {% endfor %}
+    <div id="map_write" style="width:600px; height:200px;" />
     <button type="submit" class="btn btn-default" >올리기</button>
 </form>
 <hr />
@@ -103,7 +104,7 @@
 
 <!-- pagination -->
 <nav>
-	<ul class="pagination">
+    <ul class="pagination">
 {% for p in paginator.page_range %}
     {% if p == page %}
         <li class="active"><a href="#"><b>{{p}}</b></a></li>
@@ -111,8 +112,47 @@
         <li><a href="{%url "profile:profile" user_id=page_owner.id page=p%}">{{p}}</a></li>
     {% endif %}
 {% endfor%}
-	</ul>
+    </ul>
 </nav>
 
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZJ5mSkOL9m3gGh3SAad_cUOY8ogYKis0&sensor=true"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script>
+    var map = null; // 지도 object
+    var marker = null;
 
+    $( document ).ready(function( $ ) {
+        var mapOptions = {
+            zoom: 8,
+            center: new google.maps.LatLng(-34.397, 150.644)
+        };
+
+        // geolocation
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(get_pos_callback)
+        }
+        map = new google.maps.Map($("#map_write")[0], mapOptions);
+    });
+    
+    function get_pos_callback(position) {
+       // 위치 받아오기
+       var lat = position.coords.latitude; // 위도
+       var lon = position.coords.longitude; // 경도
+       var center = new google.maps.LatLng(lat, lon)
+
+       // 지도 중심점을 현재 위치로 이동
+       map.setCenter(center);
+
+       // 마커 만들기
+       marker = new google.maps.Marker({
+           position: center, // 위치
+           map: map,        // 대상 map
+           title:"여기서 쓴 글" // title
+       });
+       
+    }
+
+</script>
+
+ 
 {% endblock %}
