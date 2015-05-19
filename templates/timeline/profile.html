@@ -26,7 +26,7 @@
         </div>
         {% endif %}
     {% endfor %}
-    <div id="map_write" style="width:600px; height:200px;" />
+    <div id="map_write" style="width:600px; height:200px;" ></div>
     <button type="submit" class="btn btn-default" >올리기</button>
 </form>
 <hr />
@@ -132,7 +132,24 @@
             navigator.geolocation.getCurrentPosition(get_pos_callback)
         }
         map = new google.maps.Map($("#map_write")[0], mapOptions);
+        google.maps.event.addListener(map, "click", map_clicked);
+
     });
+    
+    function map_clicked(e) {
+        var center = e.latLng;
+        if (marker == null) {
+            // 마커 새로 생성
+            marker = new google.maps.Marker({
+                position: center, // 위치
+                map: map,        // 대상 map
+                title:"여기서 쓴 글" // title
+            });        
+        } else {
+            // 마커 위치 이동
+            marker.setPosition(center);
+        }
+    }
     
     function get_pos_callback(position) {
        // 위치 받아오기
